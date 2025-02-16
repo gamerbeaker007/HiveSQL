@@ -110,3 +110,15 @@ def execute_query_df(query, params=None):
     except pypyodbc.Error as e:
         log.error(f"Database error: {e}")
         return pd.DataFrame()
+
+
+@st.cache_data(ttl="24h")
+def get_hive_per_mvest():
+    result = execute_query_df("SELECT total_vesting_fund_hive, total_vesting_shares FROM DynamicGlobalProperties")
+    if not result.empty:
+        total_vesting_fund_hive, total_vesting_shares = result.iloc[0]
+        if total_vesting_shares == 0:
+            log.warning("Total vesting shares is zero, returning 0.")
+            return 0
+        return total_vesting_fund_hive / (total_vesting_shares / 1e6)
+    return 0
